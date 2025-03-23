@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Enable necessary Raspberry Pi configurations
+#sudo raspi-config nonint do_i2c 0
+#sudo raspi-config nonint do_rgpio 0
+#sudo raspi-config nonint do_spi 0
+#sudo systemctl enable pigpiod
+
+# Set up Python virtual environment and run setup.py
+#python3 -m venv venv
+#source venv/bin/activate
+#venv/bin/python3 setup.py
+
+
+# Set up systemd service
+pathLocale=$(readlink -f .)
+printf "
+[Unit]
+Description=Camera Service
+After=multi-user.target
+Requires=network.target
+
+[Service]
+Type=idle
+ExecStartPre=/bin/sleep 3
+ExecStart=/usr/bin/sudo venv/bin/python Camera.py
+Restart=always
+RestartSec=10
+WorkingDirectory=%s
+
+[Install]
+WantedBy=multi-user.target
+" "$pathLocale"  > /etc/systemd/system/myService.service
+chmod 644 /etc/systemd/system/myService.service
+systemctl daemon-reload
+systemctl enable myService.service
+
+#set up hotspot service
+#venv/bin/python3 ../Hotspot_Wi-fi_Manager/src/install.py
+# Prompt for reboot
+read -p "Reboot needed, do you want to restart now? [y,n]: " doit
+case $doit in  
+  [yY]) reboot;;
+  *) printf "\nReboot postponed\n" ;;
+esac

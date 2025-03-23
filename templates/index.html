@@ -1,0 +1,167 @@
+<html>
+
+<head>
+    <title>
+        index
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+html{
+    font-size: 15px;
+  }
+  
+  .semaforo {
+position: absolute;
+top: 0%;
+margin-top: 20px;
+margin-left: 700px;
+display: flex;
+flex-direction:column-reverse;
+justify-content: center;
+align-items: center;
+width:60px
+}
+.semaforo div{
+opacity:0.1;
+width: 50px;
+height: 50px;
+border-radius: 50%;
+margin: 10px;}
+#luce {
+opacity:1;
+
+}
+.verde { background-color: green; }
+.giallo { background-color: yellow; }
+.rosso { background-color: red; }
+  body{
+   
+    margin: 0px;
+      color: rgb(0, 0, 0);
+    background-color: #e4e6eb;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;   
+        flex-direction: column;
+  }
+  
+  div{
+      display: flex;
+  }
+
+  #stream img{
+    margin: 2%;
+    height: 600px;
+    border-radius: 5%;
+  }
+  #lastCapture{
+    margin: 2%;
+    display: flex;
+    width: 100%;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-direction: row;
+    background-color: rgba(0, 0, 0,0.5);
+    
+  }
+  #lastCapture img{
+    border-radius: 5%;
+    height: 240px;
+    width: 320px;
+
+  }
+  #lastCapture div{
+    margin: 2%;
+    display: flex;
+    flex-direction: column;
+    width: 320px;
+  }
+    </style> 
+
+</head>
+<body>
+    <div id="stream">
+        <img src="/video_feed" alt="Stream">
+    </div>
+    <div class="semaforo">
+      <div id="luce"class=" verde"></div>
+      <div class=" giallo"></div>
+      <div class=" rosso"></div>
+  </div>
+    <div id="lastCapture">
+        
+    </div>
+    <script defer="true">
+    function onResponse(response)
+        {   console.log(response)
+            return response.json();
+        }
+        function onText(response)
+        { console.log(response)
+          return response.text()
+        }
+        function onError(error) 
+        {
+            console.log('Error: ' + error);
+        }
+           
+        
+        function onJson(json)
+        { 
+            console.log(json);
+            let container=document.querySelector("#lastCapture");
+            container.innerHTML="";
+            for (const element of json) {
+                div=document.createElement("div");
+                img=document.createElement("img")
+                img.src=element
+                p=document.createElement("p")
+                p.innerText=element
+                div.appendChild(img);
+                div.appendChild(p)
+                container.appendChild(div);
+            } 
+        }
+        function onSemaforo(json){
+          console.log(json)
+          let verde=document.querySelector(".verde");
+          let giallo=document.querySelector(".giallo");
+          let rosso=document.querySelector(".rosso");
+          if(json =="verde"){
+            verde.id="luce"
+            giallo.id=""
+            rosso.id=""
+          }else{
+            if(json=="giallo"){
+              verde.id=""
+            giallo.id="luce"
+            rosso.id=""
+            }else{
+               container=document.querySelector(".rosso");
+               verde.id=""
+                giallo.id=""
+                rosso.id="luce"
+            }
+            
+          }
+        }
+        function updateSemaforo() {
+          fetch("/semaforo").then(onText,onError).then(onSemaforo);
+            // in base alla risposta ricevuta.
+            // Esempio: se l'API restituisce "verde", accendi la luce verde.
+        }
+        function updatecapture(){
+          fetch(url).then(onResponse,onError).then(onJson);
+
+        }
+        url="/lastCaptures"
+        
+        setInterval(updatecapture, 10000);
+
+
+        // Chiama l'API ogni 5 secondi
+        setInterval(updateSemaforo, 2000);
+        </script>
+</body>
